@@ -6,7 +6,7 @@ import random
 import numpy as np
 
 emotions = ["neutral", "anger", "contempt", "disgust", "fear", "happy", "sadness", "surprise"] #Emotion list
-fishface = cv2.face.LBPHFaceRecognizer_create() #Initialize fisher face classifier
+LBPHF = cv2.face.LBPHFaceRecognizer_create() #Initialize fisher face classifier
 
 data = {}
 
@@ -44,15 +44,15 @@ def run_recognizer():
     
     print ("training fisher face classifier")
     print ("size of training set is:", len(training_labels), "images")
-    fishface.train(training_data, np.asarray(training_labels))
+    LBPHF.train(training_data, np.asarray(training_labels)) #train it
 
     print ("predicting classification set")
     cnt = 0
     correct = 0
     incorrect = 0
     for image in prediction_data:
-        pred, conf = fishface.predict(image)
-        if pred == prediction_labels[cnt]:
+        pred, conf = LBPHF.predict(image) #predict emotion
+        if pred == prediction_labels[cnt]: #validate it
             correct += 1
             cnt += 1
         else:
@@ -63,29 +63,29 @@ def run_recognizer():
 	
 #Now run it
 metascore = []
-for i in range(0,10):
+for i in range(0,15):
     correct = run_recognizer()
     print ("got", correct, "percent correct!")
     metascore.append(correct)
 
 print ("\n\nend score:", np.mean(metascore), "percent correct!")
 
-cap = cv2.VideoCapture('./../widea/laughter_480.mkv')
+#Video part
+cap = cv2.VideoCapture('./../widea/laughter_480.mkv') #open video
 
 while(cap.isOpened()):
-	ret, frame = cap.read()
+	ret, frame = cap.read() #read frame
 
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #make it gray
 
-	pos_frame = cap.get(cv2.CAP_PROP_FPS)
 	font = cv2.FONT_HERSHEY_SIMPLEX
-	pred, conf = fishface.predict(gray)
+	pred, conf = LBPHF.predict(gray) #predict emotion
 	
 	cv2.putText(gray,"emotion: " + emotions[pred],(200,50), font, 1, (200,255,155), 2, cv2.LINE_AA)
 	
 	cv2.imshow('frame',gray)
 	
-	if cv2.waitKey(25) & 0xFF == ord('q'):
+	if cv2.waitKey(25) & 0xFF == ord('q'): #load another frame after 25ms
 		break
 
 cap.release()
